@@ -249,13 +249,24 @@ app/api/
       route.ts             # DELETE
 ```
 
-**One named export per HTTP method** in the file that handles it:
+**One named export per HTTP method** in the file that handles it.
+
+On Next 16 dynamic-route params are async — typed as a `Promise` and `await`ed
+before use:
 
 ```ts
+type Ctx = { params: Promise<{ slug: string }> }
+
 export async function GET(request: NextRequest) { ... }
 export async function POST(request: NextRequest) { ... }
-export async function PATCH(request: NextRequest, { params }: { params: { slug: string } }) { ... }
-export async function DELETE(request: NextRequest, { params }: { params: { slug: string } }) { ... }
+export async function PATCH(request: NextRequest, { params }: Ctx) {
+  const { slug } = await params
+  ...
+}
+export async function DELETE(request: NextRequest, { params }: Ctx) {
+  const { slug } = await params
+  ...
+}
 ```
 
 **Route handlers are thin.** Parse → auth → call `/lib/db/` function → return envelope.
@@ -280,10 +291,19 @@ caller is allowed to access the specific resource being requested.
 **Pattern (applied from session 4.2 onwards):**
 
 ```ts
+// Async params (Next 16) — await and validate before use (see §2, §6)
+const parsed = slugParamSchema.safeParse(await params)
+if (!parsed.success) {
+  return NextResponse.json(
+    { ok: false, error: { code: 'VALIDATION', message: 'Invalid parameters.' } },
+    { status: 400 }
+  )
+}
+
 const user = await requireUser()
 
 // Load the resource first to establish the context
-const project = await getProjectBySlug(slug)
+const project = await getProjectBySlug(parsed.data.slug)
 if (!project) {
   return NextResponse.json(
     { ok: false, error: { code: 'NOT_FOUND', message: 'Project not found.' } },
