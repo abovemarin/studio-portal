@@ -1,16 +1,137 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Class-based dark: variant — next-themes sets class="dark" on <html> */
+@variant dark (&:where(.dark, .dark *));
+
+/* ── Color tokens — @theme (NO inline) ──────────────────────────────────
+   Without "inline", Tailwind generates utilities that reference the CSS
+   variable: .bg-surface-bg { background-color: var(--color-surface-bg) }
+   .dark {} can then override --color-surface-bg and the utility responds.
+
+   With "inline" (our previous bug), Tailwind bakes in the literal value:
+   .bg-surface-bg { background-color: #f8f5f0 }  ← dark mode never fires.
+   ──────────────────────────────────────────────────────────────────────── */
+@theme {
+  /* Surfaces — warm cream in light, warm charcoal in dark */
+  --color-surface-bg: #f8f5f0;
+  --color-surface-card: #f2ede6;
+  --color-surface-raised: #ebe4d8;
+
+  /* Borders */
+  --color-border: #ddd6cc;
+  --color-border-subtle: #ebe4d8;
+
+  /* Text — warm stone tones */
+  --color-text: #292118;
+  --color-text-secondary: #6b6358;
+  --color-text-muted: #9e9388;
+
+  /* Accent — amber */
+  --color-accent: #c2710c;
+  --color-accent-hover: #a35e09;
+  --color-accent-fg: #ffffff;
+  --color-accent-subtle: #fef3c7;
+  --color-accent-subtle-fg: #92400e;
+
+  /* Status: pending — warm gray */
+  --color-status-pending-bg: #f0ece6;
+  --color-status-pending-fg: #79726a;
+  --color-status-pending-dot: #a8a09a;
+
+  /* Status: in_progress — blue */
+  --color-status-in-progress-bg: #dbeafe;
+  --color-status-in-progress-fg: #1d4ed8;
+  --color-status-in-progress-dot: #3b82f6;
+
+  /* Status: in_review — amber */
+  --color-status-in-review-bg: #fef3c7;
+  --color-status-in-review-fg: #b45309;
+  --color-status-in-review-dot: #f59e0b;
+
+  /* Status: approved — green */
+  --color-status-approved-bg: #dcfce7;
+  --color-status-approved-fg: #15803d;
+  --color-status-approved-dot: #22c55e;
+
+  /* Card shadows — warm-tinted */
+  --shadow-card: 0 1px 3px 0 rgb(41 33 24 / 0.07),
+    0 4px 12px -2px rgb(41 33 24 / 0.06);
+  --shadow-card-raised: 0 4px 20px -2px rgb(41 33 24 / 0.12),
+    0 8px 32px -4px rgb(41 33 24 / 0.09);
 }
 
+/* ── Font tokens — @theme inline ─────────────────────────────────────────
+   Fonts must stay "inline" because their values contain var() references
+   to next/font CSS vars (--font-barlow, --font-barlow-condensed) that only
+   exist at runtime — Tailwind can't resolve them at build time anyway.
+   ──────────────────────────────────────────────────────────────────────── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --font-sans: var(--font-barlow), system-ui, sans-serif;
+  --font-display: var(--font-barlow-condensed), system-ui, sans-serif;
 }
 
+/* ── Dark-mode overrides ─────────────────────────────────────────────────
+   Unlayered CSS wins over @layer theme, so these always take precedence
+   when <html class="dark"> is present.
+   ──────────────────────────────────────────────────────────────────────── */
+.dark {
+  --color-surface-bg: #1c1917;
+  --color-surface-card: #252220;
+  --color-surface-raised: #312e2b;
+
+  --color-border: #3a3632;
+  --color-border-subtle: #2a2724;
+
+  --color-text: #f5f0ea;
+  --color-text-secondary: #9e9388;
+  --color-text-muted: #6b6358;
+
+  --color-accent: #e8930a;
+  --color-accent-hover: #c2710c;
+  --color-accent-fg: #1c1917;
+  --color-accent-subtle: #3d2200;
+  --color-accent-subtle-fg: #fbbf24;
+
+  --color-status-pending-bg: #252220;
+  --color-status-pending-fg: #9e9388;
+  --color-status-pending-dot: #6b6358;
+
+  --color-status-in-progress-bg: #172554;
+  --color-status-in-progress-fg: #93c5fd;
+  --color-status-in-progress-dot: #60a5fa;
+
+  --color-status-in-review-bg: #3d2200;
+  --color-status-in-review-fg: #fcd34d;
+  --color-status-in-review-dot: #f59e0b;
+
+  --color-status-approved-bg: #052e16;
+  --color-status-approved-fg: #4ade80;
+  --color-status-approved-dot: #22c55e;
+}
+
+/* ── Motion defaults ── */
+:root {
+  /* Premium exit ease — smooth deceleration, not bouncy */
+  --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── Base ── */
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background-color: var(--color-surface-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans, system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Reduced motion — disable all transitions/animations for accessibility ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
