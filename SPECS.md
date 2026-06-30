@@ -87,7 +87,7 @@ Tables (Postgres). IDs are uuid. All tables have `created_at`, `updated_at` (tim
 
 ## Design system
 
-Established up front (session 1.5), before features, so every screen inherits one
+Established up front (session 1.3), before features, so every screen inherits one
 visual language instead of accumulating ad-hoc styles.
 
 - **Tokens:** a small fixed palette, spacing scale, radius, shadow — defined once as
@@ -241,3 +241,10 @@ Record the decision AND the *why* as you make each call — this log is course c
 - [x] **Styling: Tailwind + hand-built primitives** (Button/Card/StatusPill/Input/
       EmptyState), NOT a component library. Keeps the portal looking like the studio's,
       not a recognizable template — and protects the design-system session (1.3).
+- [x] **`approvals.updated_at` included** even though the approvals table in SPECS lists
+      only `created_at`. The global rule ("all tables have `created_at`, `updated_at`")
+      wins, and re-approving mutates `note` — so `updated_at` is meaningful here.
+- [x] **`comments.author_id` and `approvals.approved_by` use `ON DELETE RESTRICT`.**
+      SPECS left the cascade behavior for user FKs on these tables unspecified. RESTRICT
+      was chosen to preserve audit history — deleting a user must not silently erase their
+      comments or approval records. Only `project_members.user_id` cascades on user delete.
