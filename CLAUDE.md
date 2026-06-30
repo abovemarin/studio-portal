@@ -16,12 +16,12 @@ agent runs these confidently and they fail. Update the moment tooling changes.)
 - `pnpm dev` — run locally
 - `pnpm build` — production build
 - `pnpm lint && pnpm typecheck` — must pass before any work is "done"
+- `pnpm db:generate` — generate migration from schema changes (Drizzle)
+- `pnpm db:migrate` — apply pending migrations
+- `pnpm db:studio` — open Drizzle Studio DB browser
 
 Commands added in later sessions (not wired yet):
-- `pnpm db:generate` — generate migration from schema changes (session 2.2)
-- `pnpm db:migrate` — apply migrations (session 2.2)
 - `pnpm db:seed` — load realistic demo data (session 2.3)
-- `pnpm db:studio` — open DB browser (session 2.2)
 - `pnpm test` — run tests (session 3+)
 
 ## Hard constraints
