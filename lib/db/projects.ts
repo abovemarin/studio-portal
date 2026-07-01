@@ -64,6 +64,23 @@ export async function deleteProject(slug: string): Promise<Project | null> {
 
 // ── Members ─────────────────────────────────────────────────────────────────
 
+/** Members of a project joined to their user (for the admin member list). */
+export async function listProjectMembers(projectId: string): Promise<
+  Array<{ id: string; userId: string; name: string | null; email: string }>
+> {
+  return db
+    .select({
+      id: projectMembers.id,
+      userId: users.id,
+      name: users.name,
+      email: users.email,
+    })
+    .from(projectMembers)
+    .innerJoin(users, eq(projectMembers.userId, users.id))
+    .where(eq(projectMembers.projectId, projectId))
+    .orderBy(desc(projectMembers.id))
+}
+
 export async function getProjectMember(
   projectId: string,
   userId: string,

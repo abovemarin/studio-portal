@@ -248,3 +248,8 @@ Record the decision AND the *why* as you make each call — this log is course c
       SPECS left the cascade behavior for user FKs on these tables unspecified. RESTRICT
       was chosen to preserve audit history — deleting a user must not silently erase their
       comments or approval records. Only `project_members.user_id` cascades on user delete.
+- [x] **Milestone reordering is a non-transactional two-`PATCH` swap** (session 4.3). The
+      admin editor reorders via up/down controls that issue two `PATCH /api/milestones/:id`
+      calls (no dedicated reorder endpoint — stays within the SPECS API surface). Accepted for
+      single/low-concurrency admin use; a partial failure is revealed on refresh and retried.
+      Revisit with a transactional reorder endpoint if concurrent multi-admin editing becomes real.
