@@ -262,3 +262,8 @@ Record the decision AND the *why* as you make each call — this log is course c
       transition. Chose idempotent re-approve over a hard "already approved" 409 because it
       matches SPECS and makes the unique constraint the actual idempotency mechanism, not
       race-only defense. Upsert + status flip run in one transaction so they cannot diverge.
+- [x] **`redirect()`/`notFound()` in Suspense-streamed pages return HTTP 200, not 307/404**
+      (session 6.1). Client pages sit behind `loading.tsx`, so Next streams the shell (200)
+      before the async component resolves the redirect/not-found — behavior is correct (the
+      browser lands on the right page and no data leaks), but external tools checking raw status
+      codes should be aware. Flagging for Module 7's audit.
