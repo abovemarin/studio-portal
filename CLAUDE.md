@@ -108,7 +108,7 @@ Added in later sessions:
 - For bug fixes: write a failing test first, then fix, then show it passing.
 - Check the screen on a narrow (mobile) viewport before calling UI done.
 - Don't say "done" until lint, typecheck, and the relevant test pass for real.
-- CI runs lint + typecheck + tests on every push; a red pipeline blocks merge. Don't
+- CI runs lint + typecheck + tests + build on every push; a red pipeline blocks merge. Don't
   merge around it.
 - Deploy to staging before production. Never test against the production database.
 

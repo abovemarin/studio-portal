@@ -1,0 +1,48 @@
+name: CI
+
+# Runs the full check suite on every push and PR. A red run blocks merge
+# (branch protection on `master` requires the `verify` job to pass).
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+# Cancel superseded runs on the same ref (e.g. rapid pushes to a PR branch).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # pnpm version is pinned via package.json#packageManager.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Cheapest / most common failures first; build (slowest) last. Fail-fast:
+      # the first failing step stops the job.
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+
+      # `pnpm build` imports route modules, which import lib/db -> lib/env, and
+      # lib/env validates process.env at module load. The build also runs as
+      # NODE_ENV=production, so RESEND_API_KEY is required too. These are dummy
+      # values only — no real database is contacted (the postgres client connects
+      # lazily, never during the build).
+      - run: pnpm build
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+          BETTER_AUTH_SECRET: ci-dummy-secret-do-not-use-0123456789abcdef
+          BETTER_AUTH_URL: http://localhost:3000
+          EMAIL_FROM: ci@example.com
+          RESEND_API_KEY: dummy
