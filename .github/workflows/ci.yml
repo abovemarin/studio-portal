@@ -4,6 +4,7 @@ name: CI
 # (branch protection on `master` requires the `verify` job to pass).
 on:
   push:
+    branches: [master]
   pull_request:
 
 # Cancel superseded runs on the same ref (e.g. rapid pushes to a PR branch).
