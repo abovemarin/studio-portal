@@ -8,6 +8,10 @@ import { ProjectStatusBadge } from '@/components/project-status-badge'
 import { getSession } from '@/lib/auth/session'
 import { listProjectsForClient } from '@/lib/db/projects'
 
+// Session + per-request DB read: never prerender (the build has no DB). Explicit so root
+// loading.tsx/error.tsx boundaries can't destabilise dynamic inference into a build-time query.
+export const dynamic = 'force-dynamic'
+
 export default async function HomePage() {
   const session = await getSession()
   if (!session) redirect('/login')

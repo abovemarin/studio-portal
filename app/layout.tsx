@@ -20,13 +20,6 @@ export const metadata: Metadata = {
   description: "Client project portal — The Scaler Studio",
 }
 
-// Every route is authenticated and DB-backed (session + per-request data), so nothing
-// benefits from static prerendering. Force dynamic app-wide: the build never attempts to
-// prerender a page — and therefore never contacts the database at build time (CI relies on
-// this). Without it, adding root loading.tsx/error.tsx boundaries destabilises Next's
-// dynamic inference and a page's DB query can surface as a prerender error during build.
-export const dynamic = "force-dynamic"
-
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
