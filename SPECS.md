@@ -253,3 +253,12 @@ Record the decision AND the *why* as you make each call — this log is course c
       calls (no dedicated reorder endpoint — stays within the SPECS API surface). Accepted for
       single/low-concurrency admin use; a partial failure is revealed on refresh and retried.
       Revisit with a transactional reorder endpoint if concurrent multi-admin editing becomes real.
+- [x] **Approval idempotency + status transition** (session 5.2). Only `in_review` →
+      `approved` is a valid first transition, enforced server-side (matching the SPECS
+      Approve-button rule); `pending`/`in_progress` → 409 CONFLICT ("wrong-status rejected").
+      Re-approving an already-`approved` milestone is **idempotent**: `INSERT ... ON CONFLICT
+      (milestone_id) DO UPDATE` updates the note, status stays `approved`, and no duplicate row
+      is created (SPECS "re-approving updates the note") — returns 200 vs 201 on the first
+      transition. Chose idempotent re-approve over a hard "already approved" 409 because it
+      matches SPECS and makes the unique constraint the actual idempotency mechanism, not
+      race-only defense. Upsert + status flip run in one transaction so they cannot diverge.
