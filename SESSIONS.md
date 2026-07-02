@@ -97,6 +97,11 @@ MODULE 6 — CLIENT EXPERIENCE
      the empty "no projects yet" first-impression especially. Responsive/mobile
      verification. Accessibility pass (keyboard nav, focus, labels).
      [this is the "make it feel finished" session — your studio differentiator]
+     NOTE (flagged during 6.2): font sizing reads too small APP-WIDE, not just on the
+     client project detail page. Traces to the type scale established in the design
+     system (session 1.3), not to anything 6.2 touched. Needs a dedicated review of the
+     scale — fold into this polish pass, or do a small standalone session before it.
+     Do not treat as a 6.2 bug.
 
 ═══════════════════════════════════════════════════════════════
 MODULE 7 — SECURITY (a VERIFICATION audit, not where security starts)
