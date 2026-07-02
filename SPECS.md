@@ -267,3 +267,15 @@ Record the decision AND the *why* as you make each call — this log is course c
       before the async component resolves the redirect/not-found — behavior is correct (the
       browser lands on the right page and no data leaks), but external tools checking raw status
       codes should be aware. Flagging for Module 7's audit.
+- [x] **Semantic `danger` token added (session 6.3a)** for error text/border (light `#b91c1c` ≈
+      5.95:1, dark `#f87171`), replacing raw `text-red-500` (`#ef4444` ≈ 3.49:1, failed AA in
+      light). Adopted in the shared `Input` + the client comment/approve error text. The three
+      admin editors (`project-editor`, `milestones-editor`, `members-editor`) still use inline
+      `text-red-500` — **deliberately left** per 6.3's admin audit-only boundary. **Admin-pass
+      candidate: adopt `text-danger` there.** (The shared `Input` change already fixes admin
+      field-level errors; only the section-level `<p>`s remain.)
+- [x] **Admin comment capability — UI-only gap, not an authz bug (verified session 6.3b).** The
+      `POST /api/milestones/:id/comments` route authorizes members **+ admin** per SPECS (403 only
+      when `!membership && role !== 'admin'`), so an admin can comment via the API. The admin
+      project detail UI simply renders no comment composer. Scoped task for a future admin pass
+      (surface a composer); no priority fix needed — the API is spec-correct.

@@ -64,7 +64,7 @@ export default async function ProjectDetailPage({ params }: Ctx) {
           <p className="mb-3 font-sans text-xs uppercase tracking-widest text-text-muted">
             /{project.slug}
           </p>
-          <h1 className="font-display text-6xl font-bold uppercase leading-none tracking-tight text-text sm:text-7xl">
+          <h1 className="font-display text-5xl font-bold uppercase leading-none tracking-tight text-text sm:text-6xl">
             {project.name}
           </h1>
         </div>

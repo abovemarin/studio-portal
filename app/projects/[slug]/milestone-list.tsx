@@ -1,6 +1,7 @@
 import { ChevronRight, ExternalLink } from 'lucide-react'
 import { Card, CardContent } from '@/components/card'
 import { StatusPill } from '@/components/status-pill'
+import { cn, relativeTime } from '@/lib/utils'
 import type { Milestone } from '@/lib/db/schema'
 import type { ProjectComment } from '@/lib/db/comments'
 import { ApproveAction } from './approve-action'
@@ -23,20 +24,35 @@ export function MilestoneList({
     <div className="flex flex-col gap-3">
       {milestones.map((m) => {
         const comments = commentsByMilestone.get(m.id) ?? []
+        const needsReview = m.status === 'in_review'
         return (
-          <Card key={m.id}>
-            <details className="group">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl p-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent [&::-webkit-details-marker]:hidden">
-                <div className="flex min-w-0 items-center gap-2">
+          // in_review dominance: accent ring + open by default (native <details>, so the row
+          // stays keyboard-toggleable — the in_review one just starts expanded).
+          <Card key={m.id} className={cn(needsReview && 'ring-2 ring-accent')}>
+            <details className="group" open={needsReview}>
+              <summary className="flex cursor-pointer list-none items-start justify-between gap-3 rounded-xl p-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent [&::-webkit-details-marker]:hidden">
+                <div className="flex min-w-0 items-start gap-2">
                   <ChevronRight
                     size={16}
                     strokeWidth={1.5}
                     aria-hidden="true"
-                    className="shrink-0 text-text-muted transition-transform duration-200 group-open:rotate-90"
+                    className="mt-0.5 shrink-0 text-text-muted transition-transform duration-200 group-open:rotate-90"
                   />
-                  <h2 className="truncate font-sans text-sm font-semibold text-text">{m.title}</h2>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h2 className="font-sans text-sm font-semibold text-text">{m.title}</h2>
+                      {needsReview && (
+                        <span className="inline-flex items-center rounded-full bg-accent px-2 py-0.5 font-sans text-xs font-semibold uppercase tracking-wide text-accent-fg">
+                          Needs your review
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-0.5 font-sans text-xs text-text-muted">
+                      Updated {relativeTime(m.updatedAt)}
+                    </p>
+                  </div>
                 </div>
-                <StatusPill status={m.status} />
+                <StatusPill status={m.status} className="mt-0.5 shrink-0" />
               </summary>
 
               <CardContent className="pt-0">
@@ -76,12 +92,17 @@ export function MilestoneList({
                               <span className="font-sans text-sm font-medium text-text">
                                 {comment.authorName?.trim() || comment.authorEmail}
                               </span>
-                              <span className="font-sans text-xs text-text-muted">
-                                {dateFormatter.format(comment.createdAt)}
+                              <span
+                                className="font-sans text-xs text-text-muted"
+                                title={dateFormatter.format(comment.createdAt)}
+                              >
+                                {relativeTime(comment.createdAt)}
                               </span>
                             </div>
-                            {/* Rendered as text — JSX auto-escapes, satisfying the XSS rule. */}
-                            <p className="whitespace-pre-wrap font-sans text-sm text-text-secondary">
+                            {/* Rendered as text — JSX auto-escapes, satisfying the XSS rule.
+                                Comment body is primary user content → text-text (not the muted
+                                secondary it wore before), for legibility. */}
+                            <p className="whitespace-pre-wrap font-sans text-sm text-text">
                               {comment.body}
                             </p>
                           </li>

@@ -57,7 +57,7 @@ export function ApproveAction({ milestoneId }: { milestoneId: string }) {
           </Button>
         </div>
         {error && (
-          <p role="alert" className="font-sans text-xs text-red-500">
+          <p role="alert" className="font-sans text-xs text-danger">
             {error}
           </p>
         )}
@@ -82,7 +82,7 @@ export function ApproveAction({ milestoneId }: { milestoneId: string }) {
         />
       </div>
       {error && (
-        <p role="alert" className="font-sans text-xs text-red-500">
+        <p role="alert" className="font-sans text-xs text-danger">
           {error}
         </p>
       )}
