@@ -28,11 +28,12 @@ HTTP status is always set correctly — the envelope alone is not the status sig
 | 401    | Not authenticated (`requireUser` threw) |
 | 403    | Authenticated but wrong role or ownership denied |
 | 404    | Resource not found |
+| 409    | Request conflicts with current resource state (e.g. wrong-status transition) |
 | 429    | Rate limited |
 | 500    | Unexpected server error |
 
 Envelope `code` strings: `INVALID_JSON`, `VALIDATION`, `UNAUTHORIZED`, `FORBIDDEN`,
-`NOT_FOUND`, `RATE_LIMITED`, `INTERNAL`.
+`NOT_FOUND`, `CONFLICT`, `RATE_LIMITED`, `INTERNAL`.
 
 ---
 
