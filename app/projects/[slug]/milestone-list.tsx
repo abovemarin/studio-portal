@@ -1,9 +1,10 @@
 import { ChevronRight, ExternalLink } from 'lucide-react'
 import { Card, CardContent } from '@/components/card'
-import { Button } from '@/components/button'
 import { StatusPill } from '@/components/status-pill'
 import type { Milestone } from '@/lib/db/schema'
 import type { ProjectComment } from '@/lib/db/comments'
+import { ApproveAction } from './approve-action'
+import { CommentComposer } from './comment-composer'
 
 const dateFormatter = new Intl.DateTimeFormat('en-US', {
   month: 'short',
@@ -87,14 +88,13 @@ export function MilestoneList({
                         ))}
                       </ul>
                     )}
+
+                    <CommentComposer milestoneId={m.id} />
                   </div>
 
                   {m.status === 'in_review' && (
                     <div>
-                      {/* Approve action is wired in session 6.2 — disabled here. */}
-                      <Button variant="primary" size="sm" disabled>
-                        Approve
-                      </Button>
+                      <ApproveAction milestoneId={m.id} />
                     </div>
                   )}
                 </div>
