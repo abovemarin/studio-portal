@@ -1,6 +1,6 @@
 import { asc, eq } from 'drizzle-orm'
 import { db } from './index'
-import { comments } from './schema'
+import { comments, milestones, users } from './schema'
 import type { Comment } from './schema'
 import type { CreateCommentInput } from '@/lib/validation/comments'
 
@@ -11,6 +11,38 @@ export async function listCommentsForMilestone(milestoneId: string): Promise<Com
     .select()
     .from(comments)
     .where(eq(comments.milestoneId, milestoneId))
+    .orderBy(asc(comments.createdAt))
+}
+
+export type ProjectComment = {
+  id: string
+  milestoneId: string
+  body: string
+  createdAt: Date
+  authorName: string | null
+  authorEmail: string
+}
+
+/**
+ * All comments across a project's milestones, joined to their author, oldest first. The
+ * detail page groups these by milestoneId in memory — one query instead of one per milestone
+ * (no N+1). Scoping is via the milestones join on projectId. Author join mirrors
+ * listProjectMembers in projects.ts.
+ */
+export async function listCommentsForProject(projectId: string): Promise<ProjectComment[]> {
+  return db
+    .select({
+      id: comments.id,
+      milestoneId: comments.milestoneId,
+      body: comments.body,
+      createdAt: comments.createdAt,
+      authorName: users.name,
+      authorEmail: users.email,
+    })
+    .from(comments)
+    .innerJoin(milestones, eq(comments.milestoneId, milestones.id))
+    .innerJoin(users, eq(comments.authorId, users.id))
+    .where(eq(milestones.projectId, projectId))
     .orderBy(asc(comments.createdAt))
 }
 

@@ -277,6 +277,14 @@ async function seed() {
         authorId:    daniel.id,
         body:        "Freight Display is an Adobe Fonts library font. I've added a section in the guidelines on licensing and the closest Google Fonts alternative (Cormorant) for internal use.",
       },
+      // XSS render-safety fixture: a hostile comment body that MUST render as inert text,
+      // never execute. Verifies the SPECS rule "escape/sanitize comment bodies on render".
+      // Kept permanently so every render of the comment list is guarded (Module 5.1 → 7).
+      {
+        milestoneId: verdantGuidelines.id,
+        authorId:    jessica.id,
+        body:        `<script>alert('xss-test-6941')</script><img src=x onerror="alert('xss-img-6941')">`,
+      },
       // Blueprint — Homepage (in_review)
       {
         milestoneId: bpHomepage.id,
@@ -370,7 +378,7 @@ seed()
     console.log('  Projects:       4  (3 active, 1 completed)')
     console.log('  Members:        4')
     console.log('  Milestones:    17  (across 4 projects)')
-    console.log('  Comments:      14')
+    console.log('  Comments:      15  (incl. 1 XSS render-safety fixture)')
     console.log('  Approvals:      8')
     process.exit(0)
   })
