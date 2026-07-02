@@ -9,6 +9,10 @@ import { ProjectEditor } from './project-editor'
 import { MilestonesEditor } from './milestones-editor'
 import { MembersEditor } from './members-editor'
 
+// Session + per-request DB read: never prerender (the build has no DB). Explicit so root
+// loading.tsx/error.tsx boundaries can't destabilise dynamic inference into a build-time query.
+export const dynamic = 'force-dynamic'
+
 type Ctx = { params: Promise<{ slug: string }> }
 
 export default async function AdminProjectDetailPage({ params }: Ctx) {
