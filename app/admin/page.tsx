@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { FolderOpen, Plus } from 'lucide-react'
+import { FolderOpen, Plus, Users } from 'lucide-react'
 import { Card, CardHeader, CardContent } from '@/components/card'
 import { EmptyState } from '@/components/empty-state'
 import { ThemeToggle } from '@/components/theme-toggle'
@@ -22,6 +22,12 @@ export default async function AdminProjectsPage() {
             The Scaler Studio — Admin
           </p>
           <div className="flex items-center gap-2">
+            <Link href="/admin/users">
+              <Button variant="secondary" size="sm">
+                <Users size={16} strokeWidth={1.5} aria-hidden="true" />
+                Users
+              </Button>
+            </Link>
             <Link href="/admin/projects/new">
               <Button variant="secondary" size="sm">
                 <Plus size={16} strokeWidth={1.5} aria-hidden="true" />
