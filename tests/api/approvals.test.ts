@@ -18,13 +18,21 @@ vi.mock('@/lib/db/approvals', () => ({
   getApprovalForMilestone: vi.fn(),
 }))
 
+// Mocked so we control pass/fail per test without fighting module-level Map state
+// (mirrors tests/auth/request-link.test.ts).
+vi.mock('@/lib/rate-limit', () => ({
+  rateLimit: vi.fn().mockReturnValue(true),
+}))
+
 import { POST } from '@/app/api/milestones/[id]/approve/route'
 import { requireUser, UnauthorizedError } from '@/lib/auth/session'
 import { getMilestoneById } from '@/lib/db/milestones'
 import { getProjectMember } from '@/lib/db/projects'
 import { approveMilestone } from '@/lib/db/approvals'
+import { rateLimit } from '@/lib/rate-limit'
 
 const mockRequireUser = vi.mocked(requireUser)
+const mockRateLimit = vi.mocked(rateLimit)
 const MILESTONE_ID = '22222222-2222-4222-8222-222222222222'
 const MEMBER_ID = '33333333-3333-4333-8333-333333333333'
 const OTHER_ID = '44444444-4444-4444-8444-444444444444'
@@ -45,9 +53,23 @@ function milestone(status: string) {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  mockRateLimit.mockReturnValue(true)
 })
 
 describe('POST /api/milestones/:id/approve (member or admin)', () => {
+  it('rate-limited user → 429 RATE_LIMITED (no write)', async () => {
+    mockRequireUser.mockResolvedValue({ id: MEMBER_ID, role: 'client' } as never)
+    mockRateLimit.mockReturnValue(false)
+
+    const res = await POST(jsonReq({ note: 'ok' }), idCtx(MILESTONE_ID))
+    const body = await res.json()
+
+    expect(res.status).toBe(429)
+    expect(body.ok).toBe(false)
+    expect(body.error.code).toBe('RATE_LIMITED')
+    expect(approveMilestone).not.toHaveBeenCalled()
+  })
+
   it('unauthenticated → 401 (no write)', async () => {
     mockRequireUser.mockRejectedValue(new UnauthorizedError())
     const res = await POST(jsonReq({ note: 'ok' }), idCtx(MILESTONE_ID))

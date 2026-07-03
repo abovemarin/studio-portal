@@ -117,4 +117,26 @@ describe('POST /api/auth/request-link', () => {
     expect(body.ok).toBe(false)
     expect(body.error.code).toBe('RATE_LIMITED')
   })
+
+  it('both the per-IP and per-email checks are wired in (either failing → 429)', async () => {
+    // Only the email-keyed check fails — proves the route calls rateLimit a second time
+    // with an email-derived key, not just the pre-existing IP check.
+    mockRateLimit.mockImplementation((key: string) => !key.startsWith('request-link-email:'))
+
+    const res = await POST(makeRequest({ email: 'client@example.com' }))
+    const body = await res.json()
+
+    expect(res.status).toBe(429)
+    expect(body.error.code).toBe('RATE_LIMITED')
+    expect(mockRateLimit).toHaveBeenCalledWith(
+      expect.stringMatching(/^request-link:/),
+      expect.any(Number),
+      expect.any(Number),
+    )
+    expect(mockRateLimit).toHaveBeenCalledWith(
+      'request-link-email:client@example.com',
+      expect.any(Number),
+      expect.any(Number),
+    )
+  })
 })

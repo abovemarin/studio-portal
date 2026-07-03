@@ -4,6 +4,7 @@ import { approveSchema, milestoneIdParamSchema } from '@/lib/validation/approval
 import { getMilestoneById } from '@/lib/db/milestones'
 import { getProjectMember } from '@/lib/db/projects'
 import { approveMilestone } from '@/lib/db/approvals'
+import { rateLimit } from '@/lib/rate-limit'
 
 type Ctx = { params: Promise<{ id: string }> }
 
@@ -45,6 +46,15 @@ export async function POST(request: NextRequest, { params }: Ctx) {
 
   try {
     const user = await requireUser()
+
+    // Same trust class as comments (member-writable, cheap to spam); separate key
+    // prefix so exhausting one doesn't cost budget on the other.
+    if (!rateLimit(`approve:${user.id}`, 10, 60_000)) {
+      return NextResponse.json(
+        { ok: false, error: { code: 'RATE_LIMITED', message: 'Too many requests. Try again shortly.' } },
+        { status: 429 },
+      )
+    }
 
     const milestone = await getMilestoneById(parsedParams.data.id)
     if (!milestone) {

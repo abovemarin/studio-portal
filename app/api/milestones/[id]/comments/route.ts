@@ -4,6 +4,7 @@ import { commentIdParamSchema, createCommentSchema } from '@/lib/validation/comm
 import { getMilestoneById } from '@/lib/db/milestones'
 import { getProjectMember } from '@/lib/db/projects'
 import { createComment } from '@/lib/db/comments'
+import { rateLimit } from '@/lib/rate-limit'
 
 type Ctx = { params: Promise<{ id: string }> }
 
@@ -39,6 +40,15 @@ export async function POST(request: NextRequest, { params }: Ctx) {
 
   try {
     const user = await requireUser()
+
+    // Per-user, not per-IP: the caller is already authenticated here, so user.id is
+    // precise and won't false-positive multiple legit users behind one office IP.
+    if (!rateLimit(`comment:${user.id}`, 10, 60_000)) {
+      return NextResponse.json(
+        { ok: false, error: { code: 'RATE_LIMITED', message: 'Too many requests. Try again shortly.' } },
+        { status: 429 },
+      )
+    }
 
     const milestone = await getMilestoneById(parsedParams.data.id)
     if (!milestone) {

@@ -30,9 +30,16 @@ const TABLES = [
 // Truncate (not transaction-rollback): the routes issue queries through the pooled singleton, so a
 // test-owned transaction on one connection could not isolate the handlers' pooled queries. For a
 // leak proof, a row bled through from a prior test could produce a false pass — isolation wins.
+//
+// The rate limiter is the other piece of module-level state in the app (lib/rate-limit.ts's
+// in-memory Map). Reset it here too, for the same reason: relying on seedUser()'s unique ids to
+// avoid key collisions is not a substitute for isolation if a future test reuses a seeded user
+// across multiple `it()` blocks.
 beforeEach(async () => {
   const { db } = await import('@/lib/db')
   await db.$client.unsafe(`TRUNCATE ${TABLES.join(', ')} RESTART IDENTITY CASCADE`)
+  const { __resetRateLimitsForTests } = await import('@/lib/rate-limit')
+  __resetRateLimitsForTests()
 })
 
 afterAll(async () => {

@@ -28,6 +28,11 @@ export default defineConfig({
           globalSetup: ['./tests/integration/global-setup.ts'],
           setupFiles: ['./tests/integration/setup.ts'],
           include: ['tests/integration/**/*.test.ts'],
+          // All integration files share ONE real Postgres DB with a TRUNCATE-based
+          // beforeEach — running files in parallel lets one file's truncate wipe rows
+          // an in-flight test in another file just inserted. Force sequential file
+          // execution; the unit project (DB-mocked) is unaffected.
+          fileParallelism: false,
         },
       },
     ],
