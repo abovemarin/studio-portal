@@ -293,3 +293,48 @@ Record the decision AND the *why* as you make each call — this log is course c
       fixed this session (`comment:{userId}`, 10/60s), along with `approve` (same trust class,
       same limit) and a per-email check on `request-link` (per-IP alone doesn't stop an
       IP-rotating attacker from spamming one invitee's inbox).
+- [x] **Staging keeps Resend's sandbox sender permanently; production requires a verified
+      domain as a hard gate before real clients (session 8.1).** Resend's sandbox sender
+      (`onboarding@resend.dev`) only delivers to the account owner's own verified email
+      until a custom domain is verified — staging deliberately stays on it forever, not as
+      an interim step, because it makes staging **physically unable** to email a real
+      client even by accident. Production cannot ship this way: magic-link is the only way
+      in (invite-only, no password), so a production sender still on the sandbox means
+      every invited client's sign-in email silently never arrives — the request-link route
+      returns its uniform 200 regardless (anti-enumeration by design), so nothing surfaces
+      the failure. **Gate, not a build-out blocker**: provisioning production in Railway
+      (8.1) doesn't require the domain yet; verifying a sending domain (SPF/DKIM DNS +
+      Resend dashboard) is required before inviting any real (non-owner) client. Verify by
+      inviting one real non-owner test recipient once the domain is live — the one path the
+      sandbox sender structurally can't rehearse.
+- [x] **Production Railway environment didn't exist going into session 8.2; created via
+      `railway environment new production --duplicate staging` rather than a separate 8.1
+      session.** The host decision (Railway, above) had only ever been executed for staging
+      — module 8.1's "set up TWO environments" step was incomplete. Rather than block
+      migrations on a strict module boundary, 8.2's scope was explicitly expanded (with
+      sign-off) to provision production too, keeping momentum instead of a placeholder
+      session. `--duplicate` clones service definitions and variables from the source
+      environment but gives Postgres a fresh, empty volume — no data is copied.
+- [x] **`railway environment new --duplicate` copies variable *values* verbatim, including
+      secrets — caught before real use, not after (session 8.2).** Production came out of
+      `--duplicate staging` sharing staging's exact `BETTER_AUTH_SECRET` and a
+      `BETTER_AUTH_URL` still pointing at staging's domain. Because `sendMagicLink` builds
+      the emailed link straight from `env.BETTER_AUTH_URL`, every "production" login before
+      the fix silently authenticated against staging's callback endpoint — invisible at a
+      glance since both environments already had the same admin email, so cookie/`/admin`
+      checks looked identical either way. Fixed by rotating `BETTER_AUTH_SECRET` (fresh
+      32-byte random secret, production only) and repointing `BETTER_AUTH_URL` at
+      production's real domain, then re-verifying the login flow with the address bar
+      explicitly checked this time. **Any future environment duplication must repeat this**:
+      rotate `BETTER_AUTH_SECRET` and re-point self-referential URL vars immediately, before
+      trusting anything that flows through auth.
+- [x] **Staging's `studio-portal` service had a broken `DATABASE_URL` (hardcoded to
+      `localhost`, not a Postgres reference) — pre-existing, found while migrating (session
+      8.2).** The variable was a stray local-dev connection string instead of
+      `${{Postgres.DATABASE_URL}}`, meaning the deployed staging app was never actually able
+      to reach its database before this session. Fixed by setting the variable to the proper
+      service reference; confirmed via a clean redeploy and a successful migration
+      immediately after. Also learned: `railway run` only injects env vars into a local
+      child process, it does not tunnel into Railway's private network — one-off commands
+      run from a laptop (migrations, backups, the admin bootstrap script) must use
+      `DATABASE_PUBLIC_URL`, not the service's own internal `DATABASE_URL`.
