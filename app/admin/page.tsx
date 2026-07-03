@@ -1,8 +1,9 @@
 import Link from 'next/link'
-import { FolderOpen } from 'lucide-react'
+import { FolderOpen, Plus } from 'lucide-react'
 import { Card, CardHeader, CardContent } from '@/components/card'
 import { EmptyState } from '@/components/empty-state'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { Button } from '@/components/button'
 import { ProjectStatusBadge } from '@/components/project-status-badge'
 import { listProjectsForAdmin } from '@/lib/db/projects'
 
@@ -20,7 +21,15 @@ export default async function AdminProjectsPage() {
           <p className="font-sans text-xs uppercase tracking-widest text-text-muted">
             The Scaler Studio — Admin
           </p>
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            <Link href="/admin/projects/new">
+              <Button variant="secondary" size="sm">
+                <Plus size={16} strokeWidth={1.5} aria-hidden="true" />
+                New project
+              </Button>
+            </Link>
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
