@@ -338,3 +338,22 @@ Record the decision AND the *why* as you make each call — this log is course c
       child process, it does not tunnel into Railway's private network — one-off commands
       run from a laptop (migrations, backups, the admin bootstrap script) must use
       `DATABASE_PUBLIC_URL`, not the service's own internal `DATABASE_URL`.
+- [ ] **Verify a real sending domain in Resend (SPF/DKIM + dashboard confirmation) — tracked,
+      not done (found during session 8.2b).** The production CRUD smoke test hit the sandbox
+      sender's exact-match delivery restriction directly: a `+`-alias address for a second test
+      identity was silently undeliverable, blocking the client-identity half of the RBAC,
+      comments, and approvals checks (see `scratch/8.2b-report.md` — those paths were exercised
+      as admin only, not as a true second client, because there was no way to actually receive
+      a link).
+      This is the same gate the session-8.1 sandbox-sender entry above already named as required
+      before inviting any real client; it's re-recorded here as the concrete trigger that
+      surfaced it in practice, and as the thing that unblocks that residual coverage gap once done.
+- [ ] **Admin CRUD completeness pass — tracked, not done (found during session 8.2b).** The 8.2b
+      production smoke test found three Module 4 gaps by accident, not by a deliberate audit:
+      no `/admin/projects/new` (create-project UI — found and fixed this session), no
+      `/admin/users` (list/role/invite screen SPECS already specified — found and fixed this
+      session), and no delete-project or delete-user UI action anywhere (both APIs exist and are
+      tested; neither has a button — found, deferred, not fixed this session). Finding three gaps
+      by accident in one session is itself the signal: a deliberate pass should check every entity
+      (projects, milestones, members, users) against a full create/read/update/delete surface in
+      the actual UI, not just the API, to confirm there isn't a fourth.
