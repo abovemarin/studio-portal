@@ -15,6 +15,25 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
+
+    # Real ephemeral Postgres for the integration tests (7.1 harness). The unit project ignores it;
+    # the integration project connects via TEST_DATABASE_URL below and builds its schema by running
+    # the real migrations on this fresh DB.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: studio_portal_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
 
@@ -33,6 +52,10 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
+        env:
+          # Throwaway DB whose name ends in _test (harness safety rail). Local dev uses
+          # .env.test.local; CI uses the services container above.
+          TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/studio_portal_test
 
       # `pnpm build` imports route modules, which import lib/db -> lib/env, and
       # lib/env validates process.env at module load. The build also runs as
