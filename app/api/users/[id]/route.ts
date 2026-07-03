@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireRole, UnauthorizedError, ForbiddenError } from '@/lib/auth/session'
 import { updateUserRoleSchema, userParamSchema } from '@/lib/validation/users'
 import { updateUserRole } from '@/lib/db/users'
+import { logError } from '@/lib/log'
 
 type Ctx = { params: Promise<{ id: string }> }
 
@@ -67,7 +68,7 @@ export async function PATCH(request: NextRequest, { params }: Ctx) {
         { status: 403 },
       )
     }
-    console.error('[users]', error)
+    logError('users', error)
     return NextResponse.json(
       { ok: false, error: { code: 'INTERNAL', message: 'Something went wrong.' } },
       { status: 500 },

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireRole, UnauthorizedError, ForbiddenError } from '@/lib/auth/session'
 import { memberParamSchema } from '@/lib/validation/projects'
 import { getProjectBySlug, removeProjectMember } from '@/lib/db/projects'
+import { logError } from '@/lib/log'
 
 type Ctx = { params: Promise<{ slug: string; userId: string }> }
 
@@ -48,7 +49,7 @@ export async function DELETE(_request: NextRequest, { params }: Ctx) {
         { status: 403 },
       )
     }
-    console.error('[members]', error)
+    logError('members', error)
     return NextResponse.json(
       { ok: false, error: { code: 'INTERNAL', message: 'Something went wrong.' } },
       { status: 500 },

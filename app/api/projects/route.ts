@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireUser, requireRole, UnauthorizedError, ForbiddenError } from '@/lib/auth/session'
 import { createProjectSchema } from '@/lib/validation/projects'
+import { logError } from '@/lib/log'
 import {
   listProjectsForAdmin,
   listProjectsForClient,
@@ -31,7 +32,7 @@ export async function GET() {
         { status: 403 },
       )
     }
-    console.error('[projects]', error)
+    logError('projects', error)
     return NextResponse.json(
       { ok: false, error: { code: 'INTERNAL', message: 'Something went wrong.' } },
       { status: 500 },
@@ -87,7 +88,7 @@ export async function POST(request: NextRequest) {
         { status: 403 },
       )
     }
-    console.error('[projects]', error)
+    logError('projects', error)
     return NextResponse.json(
       { ok: false, error: { code: 'INTERNAL', message: 'Something went wrong.' } },
       { status: 500 },

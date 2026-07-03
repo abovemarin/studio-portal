@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireRole, UnauthorizedError, ForbiddenError } from '@/lib/auth/session'
 import { slugParamSchema, addMemberSchema } from '@/lib/validation/projects'
+import { logError } from '@/lib/log'
 import {
   getProjectBySlug,
   getUserById,
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest, { params }: Ctx) {
         { status: 403 },
       )
     }
-    console.error('[members]', error)
+    logError('members', error)
     return NextResponse.json(
       { ok: false, error: { code: 'INTERNAL', message: 'Something went wrong.' } },
       { status: 500 },

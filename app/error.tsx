@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import { EmptyState } from '@/components/empty-state'
 import { Button } from '@/components/button'
+import { logError } from '@/lib/log'
 
 export default function HomeError({
   error,
@@ -13,7 +14,7 @@ export default function HomeError({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error('[home]', error)
+    logError('home', error)
   }, [error])
 
   return (
