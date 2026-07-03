@@ -19,6 +19,9 @@ agent runs these confidently and they fail. Update the moment tooling changes.)
 - `pnpm db:generate` — generate migration from schema changes (Drizzle)
 - `pnpm db:migrate` — apply pending migrations
 - `pnpm db:studio` — open Drizzle Studio DB browser
+- `pnpm bootstrap:admin <email> [name]` — non-destructive upsert-by-email that
+  grants `role: 'admin'`; the only way to create/promote an admin since sign-up
+  is invite-only (session 8.2)
 
 Commands added in later sessions (not wired yet):
 - `pnpm db:seed` — load realistic demo data (session 2.3)
