@@ -29,13 +29,13 @@ export function Input({ label, error, className, ...props }: InputProps) {
           "text-sm font-sans text-text placeholder:text-text-muted",
           "transition-colors duration-200",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
-          error && "border-red-500 focus-visible:ring-red-500",
+          error && "border-danger focus-visible:ring-danger",
           className
         )}
         {...props}
       />
       {error && (
-        <p id={errorId} role="alert" className="text-xs font-sans text-red-500">
+        <p id={errorId} role="alert" className="text-xs font-sans text-danger">
           {error}
         </p>
       )}

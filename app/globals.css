@@ -33,9 +33,14 @@
   --color-accent-subtle: #fef3c7;
   --color-accent-subtle-fg: #92400e;
 
-  /* Status: pending — warm gray */
+  /* Danger — semantic error text/border. Tuned for AA on our surfaces:
+     #b91c1c ≈ 5.95:1 on #f8f5f0. Replaces raw text-red-500 (#ef4444 ≈ 3.49:1, FAILS AA). */
+  --color-danger: #b91c1c;
+
+  /* Status: pending — warm gray. fg darkened from #79726a (≈4.03:1 on the pending bg,
+     failed AA for small text) to #6b6358 (≈4.76:1). */
   --color-status-pending-bg: #f0ece6;
-  --color-status-pending-fg: #79726a;
+  --color-status-pending-fg: #6b6358;
   --color-status-pending-dot: #a8a09a;
 
   /* Status: in_progress — blue */
@@ -91,6 +96,9 @@
   --color-accent-fg: #1c1917;
   --color-accent-subtle: #3d2200;
   --color-accent-subtle-fg: #fbbf24;
+
+  /* Danger — lighter red for legibility on dark surfaces (#f87171 ≈ 6.3:1 on #1c1917). */
+  --color-danger: #f87171;
 
   --color-status-pending-bg: #252220;
   --color-status-pending-fg: #9e9388;

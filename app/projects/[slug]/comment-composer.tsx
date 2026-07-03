@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useState, type FormEvent } from 'react'
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/button'
 import { createCommentSchema } from '@/lib/validation/comments'
@@ -11,9 +11,17 @@ import { createCommentSchema } from '@/lib/validation/comments'
 export function CommentComposer({ milestoneId }: { milestoneId: string }) {
   const router = useRouter()
   const fieldId = useId()
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [body, setBody] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Bumped on each successful post. The effect focuses the (now cleared, now re-enabled) textarea
+  // after the re-render — focusing inline would hit the still-disabled field. Skips first mount.
+  const [postedCount, setPostedCount] = useState(0)
+
+  useEffect(() => {
+    if (postedCount > 0) textareaRef.current?.focus()
+  }, [postedCount])
 
   const valid = createCommentSchema.safeParse({ body }).success
 
@@ -36,6 +44,7 @@ export function CommentComposer({ milestoneId }: { milestoneId: string }) {
       // Clear the local field before refreshing — the refresh re-renders the server list (the
       // new comment appears) but does not remount this client component, so its state persists.
       setBody('')
+      setPostedCount((c) => c + 1)
       router.refresh()
     } catch {
       setError('Network error. Please try again.')
@@ -51,6 +60,7 @@ export function CommentComposer({ milestoneId }: { milestoneId: string }) {
       </label>
       <textarea
         id={fieldId}
+        ref={textareaRef}
         value={body}
         onChange={(e) => setBody(e.target.value)}
         disabled={busy}
@@ -59,7 +69,7 @@ export function CommentComposer({ milestoneId }: { milestoneId: string }) {
         className="w-full rounded-lg border border-border bg-surface-bg px-3 py-2 font-sans text-sm text-text placeholder:text-text-muted transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       />
       {error && (
-        <p role="alert" className="font-sans text-xs text-red-500">
+        <p role="alert" className="font-sans text-xs text-danger">
           {error}
         </p>
       )}

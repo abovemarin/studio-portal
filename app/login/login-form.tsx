@@ -74,6 +74,9 @@ export function LoginForm({ initialError }: { initialError: string | null }) {
         autoComplete="email"
         placeholder="you@example.com"
         required
+        // Justified exception: this is a single-field, single-purpose auth screen — the email
+        // input is the entire task, so focusing it on load is good UX, not a focus-trap surprise.
+        // eslint-disable-next-line jsx-a11y/no-autofocus
         autoFocus
         value={email}
         onChange={(e) => setEmail(e.target.value)}

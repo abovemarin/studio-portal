@@ -27,8 +27,7 @@ export default async function LoginPage({
 
         <Card>
           <CardHeader>
-            <h2 className="font-sans text-sm font-semibold text-text">Sign in</h2>
-            <p className="mt-1 font-sans text-sm text-text-secondary">
+            <p className="font-sans text-sm text-text-secondary">
               Enter your email and we&apos;ll send you a secure sign-in link.
             </p>
           </CardHeader>
