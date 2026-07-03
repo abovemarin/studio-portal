@@ -279,3 +279,17 @@ Record the decision AND the *why* as you make each call — this log is course c
       when `!membership && role !== 'admin'`), so an admin can comment via the API. The admin
       project detail UI simply renders no comment composer. Scoped task for a future admin pass
       (surface a composer); no priority fix needed — the API is spec-correct.
+- [x] **Rate limiting stays in-memory, behind a `RateLimitStore` interface (session 7.2).**
+      `lib/rate-limit.ts`'s fixed-window limiter is correct and adds no infrastructure for a
+      single Railway instance; a shared store (Redis/Upstash) is the multi-instance-correct
+      alternative but pulls infra into the stack before Module 8 needs it. Wrapped the
+      implementation behind `RateLimitStore` so swapping in a shared store later is a contained
+      change (implement the interface, replace one line), not a rewrite. **Known limitation,
+      tracked explicitly**: the count lives in one process's memory — under >1 instance
+      (horizontal scale, or an overlapping rolling deploy) the effective limit multiplies
+      per-instance and stops holding. **Revisit at the moment a second instance is introduced**
+      (Module 8 deploy pass or later). Closes the 7.1 audit's "7.2 preview" deferral note
+      (`scratch/7.1-audit.md`), which also flagged the comment-POST route as unprotected —
+      fixed this session (`comment:{userId}`, 10/60s), along with `approve` (same trust class,
+      same limit) and a per-email check on `request-link` (per-IP alone doesn't stop an
+      IP-rotating attacker from spamming one invitee's inbox).

@@ -19,16 +19,24 @@ vi.mock('@/lib/db/comments', () => ({
   deleteComment: vi.fn(),
 }))
 
+// Mocked so we control pass/fail per test without fighting module-level Map state
+// (mirrors tests/auth/request-link.test.ts).
+vi.mock('@/lib/rate-limit', () => ({
+  rateLimit: vi.fn().mockReturnValue(true),
+}))
+
 import { POST } from '@/app/api/milestones/[id]/comments/route'
 import { DELETE } from '@/app/api/comments/[id]/route'
 import { requireUser, UnauthorizedError } from '@/lib/auth/session'
 import { getMilestoneById } from '@/lib/db/milestones'
 import { getProjectMember } from '@/lib/db/projects'
 import { createComment, getCommentById, deleteComment } from '@/lib/db/comments'
+import { rateLimit } from '@/lib/rate-limit'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 
 const mockRequireUser = vi.mocked(requireUser)
+const mockRateLimit = vi.mocked(rateLimit)
 const UUID = '11111111-1111-4111-8111-111111111111'
 const MILESTONE_ID = '22222222-2222-4222-8222-222222222222'
 const AUTHOR_ID = '33333333-3333-4333-8333-333333333333'
@@ -47,9 +55,23 @@ function idCtx(id: string) {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  mockRateLimit.mockReturnValue(true)
 })
 
 describe('POST /api/milestones/:id/comments (create, member or admin)', () => {
+  it('rate-limited user → 429 RATE_LIMITED (no insert)', async () => {
+    mockRequireUser.mockResolvedValue({ id: AUTHOR_ID, role: 'client' } as never)
+    mockRateLimit.mockReturnValue(false)
+
+    const res = await POST(jsonReq({ body: 'hi' }), idCtx(MILESTONE_ID))
+    const body = await res.json()
+
+    expect(res.status).toBe(429)
+    expect(body.ok).toBe(false)
+    expect(body.error.code).toBe('RATE_LIMITED')
+    expect(createComment).not.toHaveBeenCalled()
+  })
+
   it('unauthenticated → 401 (no insert)', async () => {
     mockRequireUser.mockRejectedValue(new UnauthorizedError())
     const res = await POST(jsonReq({ body: 'hi' }), idCtx(MILESTONE_ID))
