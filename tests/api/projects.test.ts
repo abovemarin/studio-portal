@@ -96,14 +96,18 @@ describe('GET /api/projects/:slug (ownership)', () => {
     expect(res.status).toBe(200)
   })
 
-  it('non-member client → 403 (cross-client denied)', async () => {
+  // 7.1 GAP-1 (no existence leak): a non-member gets the same 404 as a nonexistent project.
+  // NOTE: this asserts 404 against the MOCKED not-a-member case (getProjectMember → null). The
+  // real adversarial proof — client A cannot enumerate project Y with real membership rows — is
+  // NEEDS-TEST-1, deferred to the test-DB harness pass. No adversarial claim here.
+  it('non-member client → 404 (cross-client, no existence leak)', async () => {
     mockRequireUser.mockResolvedValue({ id: 'c2', role: 'client' } as never)
     vi.mocked(getProjectBySlug).mockResolvedValue({ id: 'p1', slug: 'acme-site' } as never)
     vi.mocked(getProjectMember).mockResolvedValue(null)
 
     const res = await GET_ONE(new NextRequest('http://localhost'), ctx('acme-site'))
-    expect(res.status).toBe(403)
-    expect((await res.json()).error.code).toBe('FORBIDDEN')
+    expect(res.status).toBe(404)
+    expect((await res.json()).error.code).toBe('NOT_FOUND')
   })
 
   it('admin non-member → 200 (admin bypass)', async () => {

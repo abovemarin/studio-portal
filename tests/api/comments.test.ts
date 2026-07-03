@@ -25,7 +25,8 @@ import { requireUser, UnauthorizedError } from '@/lib/auth/session'
 import { getMilestoneById } from '@/lib/db/milestones'
 import { getProjectMember } from '@/lib/db/projects'
 import { createComment, getCommentById, deleteComment } from '@/lib/db/comments'
-import { escapeHtml } from '@/lib/utils'
+import { createElement } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
 
 const mockRequireUser = vi.mocked(requireUser)
 const UUID = '11111111-1111-4111-8111-111111111111'
@@ -85,13 +86,16 @@ describe('POST /api/milestones/:id/comments (create, member or admin)', () => {
     expect(res.status).toBe(400)
   })
 
-  it('authed non-member, non-admin → 403 FORBIDDEN (no insert)', async () => {
+  // 7.1 GAP-1 (no existence leak): a non-member gets the same 404 as a nonexistent milestone.
+  // Asserted against the MOCKED not-a-member case; the real-membership adversarial proof is
+  // NEEDS-TEST-1, deferred to the test-DB harness pass. No adversarial claim here.
+  it('authed non-member, non-admin → 404 (no existence leak, no insert)', async () => {
     mockRequireUser.mockResolvedValue({ id: OTHER_ID, role: 'client' } as never)
     vi.mocked(getMilestoneById).mockResolvedValue({ id: MILESTONE_ID, projectId: 'p1' } as never)
     vi.mocked(getProjectMember).mockResolvedValue(null)
 
     const res = await POST(jsonReq({ body: 'hi' }), idCtx(MILESTONE_ID))
-    expect(res.status).toBe(403)
+    expect(res.status).toBe(404)
     expect(createComment).not.toHaveBeenCalled()
   })
 
@@ -195,14 +199,19 @@ describe('DELETE /api/comments/:id (author or admin)', () => {
   })
 })
 
-describe('escapeHtml (read-time XSS neutralization)', () => {
-  it('neutralizes a <script> payload', () => {
-    expect(escapeHtml("<script>alert('xss')</script>")).toBe(
-      '&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;',
-    )
+describe('JSX auto-escaping verified (the actual comment-render XSS defense)', () => {
+  // milestone-list.tsx renders comment bodies as the JSX text child {comment.body}. React
+  // auto-escapes text children — that (not any escape util) is the XSS defense. These lock the
+  // guarantee the render path depends on: an HTML/script payload comes out inert.
+  it('renders an HTML/script payload as inert escaped text, not markup', () => {
+    const payload = "<script>alert('xss')</script>"
+    const html = renderToStaticMarkup(createElement('p', null, payload))
+    expect(html).not.toContain('<script>')
+    expect(html).toContain('&lt;script&gt;')
   })
 
-  it('does not double-encode ampersands', () => {
-    expect(escapeHtml('a & b')).toBe('a &amp; b')
+  it('escapes ampersands in a comment body', () => {
+    const html = renderToStaticMarkup(createElement('p', null, 'terms & conditions'))
+    expect(html).toContain('terms &amp; conditions')
   })
 })

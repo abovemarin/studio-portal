@@ -48,11 +48,13 @@ export async function POST(request: NextRequest, { params }: Ctx) {
       )
     }
 
+    // No-existence-leak (7.1 GAP-1): a non-member gets the SAME 404 as a nonexistent milestone,
+    // so the API can't reveal that a milestone exists in another client's project. Admin bypasses.
     const membership = await getProjectMember(milestone.projectId, user.id)
     if (!membership && (user as { role?: string }).role !== 'admin') {
       return NextResponse.json(
-        { ok: false, error: { code: 'FORBIDDEN', message: 'Access denied.' } },
-        { status: 403 },
+        { ok: false, error: { code: 'NOT_FOUND', message: 'Milestone not found.' } },
+        { status: 404 },
       )
     }
 

@@ -5,9 +5,24 @@ import { z } from 'zod'
 // milestones, so these follow the general TS naming convention (camelCase) instead of guessing.
 const milestoneStatus = z.enum(['pending', 'in_progress', 'in_review', 'approved'])
 
-// deliverableUrl: a valid URL, null, or '' (to clear). The route normalizes '' → null before
-// the data layer.
-const deliverableUrl = z.union([z.string().url(), z.literal('')]).nullable().optional()
+// deliverableUrl: an http/https URL, null, or '' (to clear). The scheme allow-list rejects
+// javascript:/data: and other schemes at the boundary (7.1 security audit): the client renders
+// this as a clickable <a href>, so a non-http(s) scheme is a latent XSS/redirect vector. The
+// route normalizes '' → null before the data layer.
+const httpUrl = z
+  .string()
+  .url()
+  // Guard the parse: zod v4 runs every check (no short-circuit), so this refine also fires on
+  // inputs that already failed .url() (and on the '' branch of the union below) — new URL() would
+  // throw a raw TypeError there. try/catch keeps it a clean validation failure.
+  .refine((u) => {
+    try {
+      return /^https?:$/.test(new URL(u).protocol)
+    } catch {
+      return false
+    }
+  }, 'URL must use http or https.')
+const deliverableUrl = z.union([httpUrl, z.literal('')]).nullable().optional()
 
 export const createMilestoneSchema = z.object({
   title: z.string().min(1),

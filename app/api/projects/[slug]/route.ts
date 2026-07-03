@@ -31,11 +31,14 @@ export async function GET(_request: NextRequest, { params }: Ctx) {
       )
     }
 
+    // No-existence-leak (7.1 GAP-1): a non-member gets the SAME 404 as a nonexistent project,
+    // so the API can't be used to enumerate which slugs are real projects. Mirrors the page
+    // layer's notFound() for non-members (6.3). Admin bypasses.
     const membership = await getProjectMember(project.id, user.id)
     if (!membership && (user as { role?: string }).role !== 'admin') {
       return NextResponse.json(
-        { ok: false, error: { code: 'FORBIDDEN', message: 'Access denied.' } },
-        { status: 403 },
+        { ok: false, error: { code: 'NOT_FOUND', message: 'Project not found.' } },
+        { status: 404 },
       )
     }
 
