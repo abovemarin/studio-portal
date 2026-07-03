@@ -84,6 +84,33 @@ describe('POST /api/projects/:slug/milestones (create, admin only)', () => {
     expect(res.status).toBe(400)
   })
 
+  // 7.1 scheme allow-list: a clickable deliverable link must be http/https only.
+  it('javascript: deliverableUrl → 400 VALIDATION (scheme allow-list, no insert)', async () => {
+    const res = await POST(
+      jsonReq({ title: 'Kickoff', deliverableUrl: 'javascript:alert(1)' }),
+      slugCtx('acme-site'),
+    )
+    expect(res.status).toBe(400)
+    expect((await res.json()).error.code).toBe('VALIDATION')
+    expect(createMilestone).not.toHaveBeenCalled()
+  })
+
+  it('https deliverableUrl → 201 (allowed scheme passes)', async () => {
+    mockRequireRole.mockResolvedValue({ id: 'a1', role: 'admin' } as never)
+    vi.mocked(getProjectBySlug).mockResolvedValue({ id: 'p1', slug: 'acme-site' } as never)
+    vi.mocked(createMilestone).mockResolvedValue({ id: UUID, title: 'Kickoff' } as never)
+
+    const res = await POST(
+      jsonReq({ title: 'Kickoff', deliverableUrl: 'https://figma.com/file/abc' }),
+      slugCtx('acme-site'),
+    )
+    expect(res.status).toBe(201)
+    expect(createMilestone).toHaveBeenCalledWith(
+      'p1',
+      expect.objectContaining({ deliverableUrl: 'https://figma.com/file/abc' }),
+    )
+  })
+
   it('admin, unknown project slug → 404 (no insert)', async () => {
     mockRequireRole.mockResolvedValue({ id: 'a1', role: 'admin' } as never)
     vi.mocked(getProjectBySlug).mockResolvedValue(null)

@@ -82,13 +82,16 @@ describe('POST /api/milestones/:id/approve (member or admin)', () => {
     expect(approveMilestone).not.toHaveBeenCalled()
   })
 
-  it('authed non-member, non-admin → 403 FORBIDDEN (no write)', async () => {
+  // 7.1 GAP-1 (no existence leak): a non-member gets the same 404 as a nonexistent milestone.
+  // Asserted against the MOCKED not-a-member case; the real-membership adversarial proof is
+  // NEEDS-TEST-1, deferred to the test-DB harness pass. No adversarial claim here.
+  it('authed non-member, non-admin → 404 (no existence leak, no write)', async () => {
     mockRequireUser.mockResolvedValue({ id: OTHER_ID, role: 'client' } as never)
     vi.mocked(getMilestoneById).mockResolvedValue(milestone('in_review'))
     vi.mocked(getProjectMember).mockResolvedValue(null)
 
     const res = await POST(jsonReq({ note: 'ok' }), idCtx(MILESTONE_ID))
-    expect(res.status).toBe(403)
+    expect(res.status).toBe(404)
     expect(approveMilestone).not.toHaveBeenCalled()
   })
 
