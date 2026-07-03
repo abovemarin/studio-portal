@@ -4,6 +4,7 @@ import { slugParamSchema } from '@/lib/validation/projects'
 import { createMilestoneSchema } from '@/lib/validation/milestones'
 import { getProjectBySlug } from '@/lib/db/projects'
 import { createMilestone } from '@/lib/db/milestones'
+import { logError } from '@/lib/log'
 
 type Ctx = { params: Promise<{ slug: string }> }
 
@@ -71,7 +72,7 @@ function mapError(error: unknown) {
       { status: 403 },
     )
   }
-  console.error('[milestones]', error)
+  logError('milestones', error)
   return NextResponse.json(
     { ok: false, error: { code: 'INTERNAL', message: 'Something went wrong.' } },
     { status: 500 },

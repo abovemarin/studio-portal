@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireRole, UnauthorizedError, ForbiddenError } from '@/lib/auth/session'
 import { milestoneIdParamSchema, updateMilestoneSchema } from '@/lib/validation/milestones'
 import { getMilestoneById, updateMilestone, deleteMilestone } from '@/lib/db/milestones'
+import { logError } from '@/lib/log'
 
 type Ctx = { params: Promise<{ id: string }> }
 
@@ -95,7 +96,7 @@ function mapError(error: unknown) {
       { status: 403 },
     )
   }
-  console.error('[milestones]', error)
+  logError('milestones', error)
   return NextResponse.json(
     { ok: false, error: { code: 'INTERNAL', message: 'Something went wrong.' } },
     { status: 500 },

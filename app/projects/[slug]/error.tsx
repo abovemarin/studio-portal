@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import { EmptyState } from '@/components/empty-state'
 import { Button } from '@/components/button'
+import { logError } from '@/lib/log'
 
 export default function ProjectDetailError({
   error,
@@ -13,7 +14,7 @@ export default function ProjectDetailError({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error('[project-detail]', error)
+    logError('project-detail', error)
   }, [error])
 
   return (

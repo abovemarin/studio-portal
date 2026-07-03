@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { auth } from '@/lib/auth'
 import { callbackQuerySchema } from '@/lib/validation/auth'
+import { logError } from '@/lib/log'
 
 export async function GET(request: NextRequest) {
   const loginError = new URL('/login?error=invalid-link', request.url)
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     // Invalid / expired / already-used token.
-    console.error('[callback]', error)
+    logError('callback', error)
     return NextResponse.redirect(loginError)
   }
 }

@@ -357,3 +357,15 @@ Record the decision AND the *why* as you make each call — this log is course c
       by accident in one session is itself the signal: a deliberate pass should check every entity
       (projects, milestones, members, users) against a full create/read/update/delete surface in
       the actual UI, not just the API, to confirm there isn't a fourth.
+- [ ] **Error logging is structured; monitoring stays deferred — tracked, not done (session
+      8.3).** `lib/log.ts` gives every route's error-boundary catch one JSON line (scope,
+      message, stack, timestamp) instead of ad-hoc `console.error('[tag]', error)` tags, read
+      via Railway's log viewer/CLI. What's still missing vs. a Sentry-style tool: alerting
+      (nobody is notified today — an error only surfaces if someone goes looking), cross-request
+      aggregation/dedup, and stack-trace grouping. Not worth a new external dependency (SDK, a
+      `SENTRY_DSN` secret, a new destination for error data) at current scale — near-zero
+      production error volume, one admin operator who already reads Railway logs directly (this
+      is how the 8.1 staging-DB bug and every 8.2b finding were diagnosed). **Revisit trigger**:
+      wire real monitoring before or immediately at the point a real (non-owner) client is first
+      invited — past that point an unnoticed error has real cost, and error volume is no longer
+      just the admin's own usage.

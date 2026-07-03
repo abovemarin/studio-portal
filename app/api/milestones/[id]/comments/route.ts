@@ -5,6 +5,7 @@ import { getMilestoneById } from '@/lib/db/milestones'
 import { getProjectMember } from '@/lib/db/projects'
 import { createComment } from '@/lib/db/comments'
 import { rateLimit } from '@/lib/rate-limit'
+import { logError } from '@/lib/log'
 
 type Ctx = { params: Promise<{ id: string }> }
 
@@ -88,7 +89,7 @@ function mapError(error: unknown) {
       { status: 403 },
     )
   }
-  console.error('[comments]', error)
+  logError('comments', error)
   return NextResponse.json(
     { ok: false, error: { code: 'INTERNAL', message: 'Something went wrong.' } },
     { status: 500 },

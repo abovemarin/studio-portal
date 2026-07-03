@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import { auth } from '@/lib/auth'
 import { requestLinkSchema } from '@/lib/validation/auth'
 import { rateLimit } from '@/lib/rate-limit'
+import { logError } from '@/lib/log'
 
 // Uniform response — never reveals whether an account exists (no enumeration).
 function uniformOk() {
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     // Invite-only: an unknown email throws here. Swallow so the response is identical
     // either way; log genuine failures (e.g. email provider errors) server-side.
-    console.error('[request-link]', error)
+    logError('request-link', error)
   }
 
   return uniformOk()

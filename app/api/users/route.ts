@@ -4,6 +4,7 @@ import { requireRole, UnauthorizedError, ForbiddenError } from '@/lib/auth/sessi
 import { auth } from '@/lib/auth'
 import { inviteUserSchema } from '@/lib/validation/users'
 import { getUserByEmail, insertUser } from '@/lib/db/users'
+import { logError } from '@/lib/log'
 
 // POST /api/users — admin only. Invite = create the user row (pre-provisioning, since
 // magic-link sign-up is disabled) then send them a real magic link via the same path
@@ -51,7 +52,7 @@ export async function POST(request: NextRequest) {
         headers: await headers(),
       })
     } catch (error) {
-      console.error('[users:invite-send]', error)
+      logError('users:invite-send', error)
       return NextResponse.json(
         {
           ok: false,
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
         { status: 403 },
       )
     }
-    console.error('[users]', error)
+    logError('users', error)
     return NextResponse.json(
       { ok: false, error: { code: 'INTERNAL', message: 'Something went wrong.' } },
       { status: 500 },
